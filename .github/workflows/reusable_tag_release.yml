@@ -29,14 +29,15 @@ jobs:
           
       - name: Tag Release
         id: tag-release
-        uses: aws-deadline/.github/.github/actions/tag-release@mainline
+        uses: OpenJobDescription/.github/.github/actions/tag-release@mainline
         with:
           tag: ${{ inputs.tag || '' }}
           email: ${{ secrets.EMAIL }}
           username: ${{ secrets.USER }}
           
       - name: Check Release
-        uses: aws-deadline/.github/.github/actions/check-release@mainline
+        uses: OpenJobDescription/.github/.github/actions/check-release@mainline
         with:
           tag: ${{ steps.tag-release.outputs.tag }}
           expected_author: ${{ secrets.EMAIL }}
+          
