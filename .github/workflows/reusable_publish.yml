@@ -78,7 +78,7 @@ jobs:
       # Tag must be made before building so the generated _version.py files have the correct version
       - name: Build
         run: |
-          pip install --upgrade hatch
+          pip install --upgrade hatch "click<8.3"
           hatch -v build
 
       - name: Configure AWS credentials
@@ -166,7 +166,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade hatch
+          pip install --upgrade hatch "click<8.3"
           pip install --upgrade twine
 
       - name: Build
