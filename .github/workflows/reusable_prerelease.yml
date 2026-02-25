@@ -25,7 +25,7 @@ jobs:
 
       - name: Build
         run: |
-          pip install --upgrade hatch "click<8.3"
+          pip install --upgrade hatch "click<8.3" "virtualenv<21"
           hatch -v build
 
       - name: UploadArtifacts
