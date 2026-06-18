@@ -1,0 +1,113 @@
+name: "Prerelease: Maturin (multi-platform)"
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      platforms:
+        required: false
+        type: string
+        description: >
+          JSON array of platform objects. Each must have "os" and "target".
+          Optional: "manylinux" (default "auto").
+          Default builds all 6 supported platforms.
+        default: >
+          [
+            { "os": "ubuntu-latest",  "target": "x86_64-unknown-linux-gnu",  "manylinux": "auto" },
+            { "os": "ubuntu-latest",  "target": "aarch64-unknown-linux-gnu", "manylinux": "auto" },
+            { "os": "windows-latest", "target": "x86_64-pc-windows-msvc" },
+            { "os": "windows-11-arm", "target": "aarch64-pc-windows-msvc" },
+            { "os": "macos-latest",   "target": "aarch64-apple-darwin" },
+            { "os": "macos-15-intel", "target": "x86_64-apple-darwin" }
+          ]
+      version-script:
+        required: false
+        type: string
+        description: >
+          Shell command to inject VCS version before building.
+          Run in bash. Skipped if empty.
+        default: "pip install setuptools_scm && python scripts/maturin_build.py --version-only"
+
+jobs:
+  BuildWheels:
+    name: Build wheel (${{ matrix.platform.os }} / ${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJson(inputs.platforms) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Inject version
+        if: inputs.version-script != ''
+        run: ${{ inputs.version-script }}
+        shell: bash
+
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          manylinux: ${{ matrix.platform.manylinux || 'auto' }}
+          rust-toolchain: stable
+          args: --release --out dist
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.platform.os }}-${{ matrix.platform.target }}
+          path: dist/*.whl
+
+  BuildSdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  CollectArtifacts:
+    name: Collect build artifacts
+    needs: [BuildWheels, BuildSdist]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: dist
