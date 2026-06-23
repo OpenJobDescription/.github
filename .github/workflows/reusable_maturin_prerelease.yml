@@ -81,6 +81,16 @@ jobs:
           ref: refs/tags/${{ inputs.tag }}
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Inject version
+        if: inputs.version-script != ''
+        run: ${{ inputs.version-script }}
+        shell: bash
+
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
