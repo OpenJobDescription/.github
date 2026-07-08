@@ -26,3 +26,7 @@ jobs:
   security-scan:
     name: Security Scan
     uses: ./.github/workflows/reusable_security_scan.yml
+    permissions:
+      # The reusable workflow's zizmor job checks out the repo (contents: read).
+      # A caller cannot grant a called workflow more than it declares here.
+      contents: read
