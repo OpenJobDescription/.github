@@ -31,6 +31,15 @@ on:
         required: false
         type: string
         default: high
+      config-ref:
+        description: >-
+          Ref of OpenJobDescription/.github to read the central zizmor.yml
+          policy from. Defaults to 'mainline' so member repos always get the
+          latest published policy. The .github repo's own self-scan passes its
+          current ref so a PR that edits the policy validates against itself.
+        required: false
+        type: string
+        default: mainline
 
 permissions: {}
 
@@ -55,7 +64,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: OpenJobDescription/.github
-          ref: mainline
+          ref: ${{ inputs.config-ref }}
           path: .zizmor-config
           persist-credentials: false
 

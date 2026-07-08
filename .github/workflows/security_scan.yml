@@ -30,3 +30,9 @@ jobs:
       # The reusable workflow's zizmor job checks out the repo (contents: read).
       # A caller cannot grant a called workflow more than it declares here.
       contents: read
+    with:
+      # This IS the .github repo, so validate against the zizmor.yml policy from
+      # the commit under test rather than the published mainline copy. That lets
+      # a PR editing the policy scan itself. Member repos omit this and default
+      # to the latest mainline policy.
+      config-ref: ${{ github.event.pull_request.head.sha || github.sha }}
