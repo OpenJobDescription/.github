@@ -8,15 +8,17 @@
 #     security-scan:
 #       uses: OpenJobDescription/.github/.github/workflows/reusable_security_scan.yml@mainline
 #
-# Keeping the scan on every push and PR to mainline means workflow changes are
-# gated before they merge.
+# Keeping the scan on every push and PR to the default branch means workflow
+# changes are gated before they merge. Both "mainline" and "main" are listed so
+# the same stub works across OpenJobDescription repos regardless of which name
+# a given repo uses (e.g. openjd-rs uses "main").
 name: "Security Scan"
 
 on:
   push:
-    branches: [ "mainline" ]
+    branches: [ "mainline", "main" ]
   pull_request:
-    branches: [ "mainline" ]
+    branches: [ "mainline", "main" ]
   schedule:
     - cron: '0 8 * * MON'
 
