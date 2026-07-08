@@ -1,0 +1,40 @@
+# Self-caller for the reusable Security Scan workflow.
+#
+# This repo hosts the reusable workflow (reusable_security_scan.yml), so it
+# scans itself here via a local reference. Other OpenJobDescription repos add
+# an equivalent stub that calls this workflow by full path, e.g.:
+#
+#   jobs:
+#     security-scan:
+#       uses: OpenJobDescription/.github/.github/workflows/reusable_security_scan.yml@mainline
+#
+# Keeping the scan on every push and PR to the default branch means workflow
+# changes are gated before they merge. Both "mainline" and "main" are listed so
+# the same stub works across OpenJobDescription repos regardless of which name
+# a given repo uses (e.g. openjd-rs uses "main").
+name: "Security Scan"
+
+on:
+  push:
+    branches: [ "mainline", "main" ]
+  pull_request:
+    branches: [ "mainline", "main" ]
+  schedule:
+    - cron: '0 8 * * MON'
+
+permissions: {}
+
+jobs:
+  security-scan:
+    name: Security Scan
+    uses: ./.github/workflows/reusable_security_scan.yml
+    permissions:
+      # The reusable workflow's zizmor job checks out the repo (contents: read).
+      # A caller cannot grant a called workflow more than it declares here.
+      contents: read
+    with:
+      # This IS the .github repo, so validate against the zizmor.yml policy from
+      # the commit under test rather than the published mainline copy. That lets
+      # a PR editing the policy scan itself. Member repos omit this and default
+      # to the latest mainline policy.
+      config-ref: ${{ github.event.pull_request.head.sha || github.sha }}
