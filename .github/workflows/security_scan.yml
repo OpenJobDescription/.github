@@ -1,0 +1,28 @@
+# Self-caller for the reusable Security Scan workflow.
+#
+# This repo hosts the reusable workflow (reusable_security_scan.yml), so it
+# scans itself here via a local reference. Other OpenJobDescription repos add
+# an equivalent stub that calls this workflow by full path, e.g.:
+#
+#   jobs:
+#     security-scan:
+#       uses: OpenJobDescription/.github/.github/workflows/reusable_security_scan.yml@mainline
+#
+# Keeping the scan on every push and PR to mainline means workflow changes are
+# gated before they merge.
+name: "Security Scan"
+
+on:
+  push:
+    branches: [ "mainline" ]
+  pull_request:
+    branches: [ "mainline" ]
+  schedule:
+    - cron: '0 8 * * MON'
+
+permissions: {}
+
+jobs:
+  security-scan:
+    name: Security Scan
+    uses: ./.github/workflows/reusable_security_scan.yml
