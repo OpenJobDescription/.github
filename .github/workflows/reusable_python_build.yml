@@ -54,7 +54,13 @@ jobs:
 
     - name: Install Hatch
       run: |
-        pip install --upgrade hatch "click<8.3" "virtualenv<21"
+        # pyproject-hooks 1.3.0 renamed the env var carrying an in-tree
+        # backend's backend-path to _PYPROJECT_HOOKS_BACKEND_PATH_JSON
+        # (pypa/pyproject-hooks#232). hatch 1.18.1 still sets the old
+        # _PYPROJECT_HOOKS_BACKEND_PATH, so `hatch build` in a repo with an
+        # in-tree PEP 517 backend fails with ModuleNotFoundError. Drop the pin
+        # once hatch sets the new name.
+        pip install --upgrade hatch "click<8.3" "virtualenv<21" "pyproject-hooks<1.3"
 
     - name: Run Linting
       run: hatch -v run lint
