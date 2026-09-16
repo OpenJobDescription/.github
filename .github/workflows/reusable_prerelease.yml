@@ -26,6 +26,11 @@ jobs:
       - name: Build
         run: |
           pip install --upgrade hatch "click<8.3" "virtualenv<21"
+          # Keep hatchling 1.32.1 out of the isolated build env (pypa/hatch#2427).
+          # See reusable_python_build.yml for why the pin must be a constraint.
+          echo 'hatchling!=1.32.1' > "$RUNNER_TEMP/build-constraints.txt"
+          export UV_CONSTRAINT="$RUNNER_TEMP/build-constraints.txt"
+          export PIP_CONSTRAINT="$RUNNER_TEMP/build-constraints.txt"
           hatch -v build
 
       - name: UploadArtifacts

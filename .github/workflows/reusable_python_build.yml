@@ -53,6 +53,9 @@ jobs:
         python-version: ${{ inputs.python-version }}
 
     - name: Install Hatch
+      # bash on every OS: the constraint snippet below uses POSIX redirection,
+      # and this job also runs on windows-latest where the default is pwsh.
+      shell: bash
       run: |
         # pyproject-hooks 1.3.0 renamed the env var carrying an in-tree
         # backend's backend-path to _PYPROJECT_HOOKS_BACKEND_PATH_JSON
@@ -61,6 +64,18 @@ jobs:
         # in-tree PEP 517 backend fails with ModuleNotFoundError. Drop the pin
         # once hatch sets the new name.
         pip install --upgrade hatch "click<8.3" "virtualenv<21" "pyproject-hooks<1.3"
+
+        # hatchling 1.32.1 imports `hatch`, which is absent from the isolated
+        # build env that `hatch build` creates, so every build fails with
+        # ModuleNotFoundError (pypa/hatch#2427; the release is yanked). A pin
+        # on the line above only reaches the CLI env. The build env is
+        # installed by uv and honours UV_CONSTRAINT; PIP_CONSTRAINT covers a
+        # pip-installed one.
+        echo 'hatchling!=1.32.1' > "$RUNNER_TEMP/build-constraints.txt"
+        {
+          echo "UV_CONSTRAINT=$RUNNER_TEMP/build-constraints.txt"
+          echo "PIP_CONSTRAINT=$RUNNER_TEMP/build-constraints.txt"
+        } >> "$GITHUB_ENV"
 
     - name: Run Linting
       run: hatch -v run lint
